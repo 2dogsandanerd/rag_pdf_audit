@@ -11,11 +11,27 @@ from docling.datamodel.base_models import InputFormat
 # Seite konfigurieren
 st.set_page_config(layout="wide", page_title="RAG Ingest X-Ray")
 
-# CSS für den "Schock-Effekt" (Rot vs Grün)
+# CSS für den "Schock-Effekt" (Rot vs Grün) + Scrollbare Boxen
 st.markdown("""
 <style>
-    .bad-box { border: 2px solid #ff4b4b; padding: 10px; border-radius: 5px; background-color: #ffebeb; color: black;}
-    .good-box { border: 2px solid #4caf50; padding: 10px; border-radius: 5px; background-color: #e8f5e9; color: black;}
+    .bad-box {
+        border: 2px solid #ff4b4b;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #ffebeb;
+        color: black;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .good-box {
+        border: 2px solid #4caf50;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #e8f5e9;
+        color: black;
+        max-height: 400px;
+        overflow-y: auto;
+    }
     .stCode { font-family: 'Courier New', monospace; }
 </style>
 """, unsafe_allow_html=True)
@@ -67,8 +83,9 @@ if uploaded_file is not None:
                     st.markdown('<div class="bad-box"><i>[LEERES DOKUMENT / BILDDATEN]</i><br><br>Die Standard-RAG sieht hier NICHTS.</div>', unsafe_allow_html=True)
                 else:
                     st.warning(f"Text gefunden (Chaos möglich). Dauer: {time_naive:.2f}s")
-                    # Zeige rohen Textbrei
-                    st.markdown(f'<div class="bad-box">{naive_text[:1000]}...</div>', unsafe_allow_html=True)
+                    # Zeige rohen Textbrei (scrollbar macht's handhabbar)
+                    preview_text = naive_text.replace('<', '&lt;').replace('>', '&gt;')  # HTML escape
+                    st.markdown(f'<div class="bad-box">{preview_text}</div>', unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"❌ Fehler bei naiver Analyse: {e}")
                 is_scan = True
@@ -77,23 +94,29 @@ if uploaded_file is not None:
         st.header("🧠 Der 'Intelligente' Ansatz")
         st.caption("Dein Stack: Docling + Layout Vision + OCR")
 
-        with st.spinner("Analysiere Layout & Tabellen (Docling)..."):
+        with st.status("🚀 Deep Document Analysis läuft...", expanded=True) as status:
             try:
-                # Docling Analyse
                 start_smart = time.time()
 
+                st.write("⚙️ Initialisiere Vision-Modelle...")
                 # Pipeline Optionen (OCR an)
                 pipeline_options = PdfPipelineOptions(do_ocr=True, do_table_structure=True)
                 converter = DocumentConverter(
                     format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)}
                 )
+
+                st.write("👁️ Scanne Dokument-Layout (Pixel-Ebene)...")
+                st.write("📊 Erkenne Tabellen-Strukturen...")
                 result = converter.convert(temp_path)
+
+                st.write("🔤 OCR-Analyse läuft...")
                 doc = result.document
+
+                st.write("📐 Rekonstruiere semantische Hierarchie...")
                 md_output = doc.export_to_markdown()
 
                 time_smart = time.time() - start_smart
-
-                st.success(f"Analyse abgeschlossen. Dauer: {time_smart:.2f}s")
+                status.update(label=f"✅ Analyse abgeschlossen! ({time_smart:.1f}s)", state="complete", expanded=False)
 
                 # Metriken anzeigen
                 m1, m2, m3 = st.columns(3)
@@ -101,15 +124,17 @@ if uploaded_file is not None:
                 m2.metric("Bilder/Grafiken", len(doc.pictures))
                 m3.metric("Zeichen", len(md_output))
 
-                # Markdown rendern (Streamlit kann Markdown nativ anzeigen!)
+                # Markdown rendern (scrollbar macht's handhabbar!)
                 st.markdown("#### KI-Sicht (Markdown):")
-                st.markdown(f'<div class="good-box">{md_output[:1500]}...</div>', unsafe_allow_html=True)
+                md_preview = md_output.replace('<', '&lt;').replace('>', '&gt;')
+                st.markdown(f'<div class="good-box">{md_preview}</div>', unsafe_allow_html=True)
 
                 # Echter Markdown Render-Test
-                with st.expander("Vorschau: Wie das LLM die Tabelle 'versteht' (Rendered)"):
+                with st.expander("📄 Vorschau: Wie das LLM die Struktur 'versteht' (Rendered)"):
                     st.markdown(md_output)
 
             except Exception as e:
+                status.update(label="❌ Fehler aufgetreten", state="error", expanded=True)
                 st.error(f"❌ Docling-Fehler: {e}")
                 st.warning("Tipp: Docling braucht `tesseract-ocr` installiert. Prüfe Dependencies!")
                 # Fallback-Werte für das Urteil
