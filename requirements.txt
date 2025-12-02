@@ -1,0 +1,3 @@
+streamlit>=1.28.0
+pypdf>=3.17.0
+docling>=1.0.0
