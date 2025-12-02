@@ -4,6 +4,8 @@
 
 Ein einfaches Tool um zu prüfen, ob deine RAG-Pipeline an einem PDF ersticken wird.
 
+![RAG Ingest X-Ray Interface](./head.png)
+
 ## Quick Start
 
 ```bash
@@ -15,7 +17,7 @@ sudo apt-get install tesseract-ocr  # Linux
 pip install -r requirements.txt
 
 # 3. Run
-streamlit run exampel_code
+streamlit run app.py
 ```
 
 ## Was macht das Tool?
@@ -23,6 +25,8 @@ streamlit run exampel_code
 Vergleicht Side-by-Side:
 - **💀 Naiver Ansatz:** Standard pypdf (was die meisten Tutorials nutzen)
 - **🧠 Intelligenter Ansatz:** Docling mit Layout-Awareness & OCR
+
+![Side-by-Side Comparison](./mid.png)
 
 ## Warum?
 
