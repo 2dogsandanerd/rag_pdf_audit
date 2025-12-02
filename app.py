@@ -11,7 +11,7 @@ from docling.datamodel.base_models import InputFormat
 # Seite konfigurieren
 st.set_page_config(layout="wide", page_title="RAG Ingest X-Ray")
 
-# CSS für den "Schock-Effekt" (Rot vs Grün) + Scrollbare Boxen
+# CSS for "Shock Effect" (Red vs Green) + Scrollable Boxes
 st.markdown("""
 <style>
     .bad-box {
@@ -37,10 +37,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🔍 RAG Ingest X-Ray")
-st.markdown("### Sieh dein Dokument durch die Augen einer KI")
-st.info("Lade ein PDF hoch um zu prüfen, ob deine RAG-Pipeline daran ersticken wird.")
+st.markdown("### See your documents through an AI's eyes")
+st.info("Upload a PDF to check if it will choke your RAG pipeline.")
 
-uploaded_file = st.file_uploader("Wähle ein PDF (z.B. gescannt oder mit Tabellen)", type="pdf")
+uploaded_file = st.file_uploader("Choose a PDF (e.g., scanned or with tables)", type="pdf")
 
 if uploaded_file is not None:
     # Datei temporär speichern mit unique Namen (HN-safe)
@@ -51,7 +51,7 @@ if uploaded_file is not None:
         with open(temp_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
     except Exception as e:
-        st.error(f"❌ Fehler beim Speichern: {e}")
+        st.error(f"❌ Error saving file: {e}")
         st.stop()
 
     st.divider()
@@ -59,12 +59,12 @@ if uploaded_file is not None:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.header("💀 Der 'Naive' Ansatz")
-        st.caption("Standard Python-Bibliotheken (pypdf, LangChain default)")
+        st.header("💀 The 'Naive' Approach")
+        st.caption("Standard Python libraries (pypdf, LangChain default)")
 
-        with st.spinner("Extrahiere Text (Naiv)..."):
+        with st.spinner("Extracting text (naive)..."):
             try:
-                # Naive Analyse
+                # Naive Analysis
                 start_naive = time.time()
                 reader = PdfReader(temp_path)
                 naive_text = ""
@@ -74,83 +74,83 @@ if uploaded_file is not None:
                         naive_text += extracted
                 time_naive = time.time() - start_naive
 
-                # Verbesserte Scan-Detection
+                # Improved Scan Detection
                 text_length = len(naive_text.strip())
                 is_scan = text_length < 50 or (text_length < 200 and len(reader.pages) > 1)
 
                 if is_scan:
-                    st.error("🚨 SCAN ERKANNT! Keine Text-Ebene gefunden.")
-                    st.markdown('<div class="bad-box"><i>[LEERES DOKUMENT / BILDDATEN]</i><br><br>Die Standard-RAG sieht hier NICHTS.</div>', unsafe_allow_html=True)
+                    st.error("🚨 SCAN DETECTED! No text layer found.")
+                    st.markdown('<div class="bad-box"><i>[EMPTY DOCUMENT / IMAGE DATA]</i><br><br>Standard RAG sees NOTHING here.</div>', unsafe_allow_html=True)
                 else:
-                    st.warning(f"Text gefunden (Chaos möglich). Dauer: {time_naive:.2f}s")
-                    # Zeige rohen Textbrei (scrollbar macht's handhabbar)
+                    st.warning(f"Text found (chaos possible). Duration: {time_naive:.2f}s")
+                    # Show raw text (scrollbar makes it manageable)
                     preview_text = naive_text.replace('<', '&lt;').replace('>', '&gt;')  # HTML escape
                     st.markdown(f'<div class="bad-box">{preview_text}</div>', unsafe_allow_html=True)
             except Exception as e:
-                st.error(f"❌ Fehler bei naiver Analyse: {e}")
+                st.error(f"❌ Error in naive analysis: {e}")
                 is_scan = True
 
     with col2:
-        st.header("🧠 Der 'Intelligente' Ansatz")
-        st.caption("Dein Stack: Docling + Layout Vision + OCR")
+        st.header("🧠 The 'Intelligent' Approach")
+        st.caption("Your Stack: Docling + Layout Vision + OCR")
 
         try:
-            with st.status("🚀 Deep Document Analysis läuft...", expanded=True) as status:
+            with st.status("🚀 Deep Document Analysis running...", expanded=True) as status:
                 start_smart = time.time()
 
-                st.write("⚙️ Initialisiere Vision-Modelle...")
-                # Pipeline Optionen (OCR an)
+                st.write("⚙️ Initializing vision models...")
+                # Pipeline Options (OCR enabled)
                 pipeline_options = PdfPipelineOptions(do_ocr=True, do_table_structure=True)
                 converter = DocumentConverter(
                     format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)}
                 )
 
-                st.write("👁️ Scanne Dokument-Layout (Pixel-Ebene)...")
-                st.write("📊 Erkenne Tabellen-Strukturen...")
+                st.write("👁️ Scanning document layout (pixel-level)...")
+                st.write("📊 Detecting table structures...")
                 result = converter.convert(temp_path)
 
-                st.write("🔤 OCR-Analyse läuft...")
+                st.write("🔤 Running OCR analysis...")
                 doc = result.document
 
-                st.write("📐 Rekonstruiere semantische Hierarchie...")
+                st.write("📐 Reconstructing semantic hierarchy...")
                 md_output = doc.export_to_markdown()
 
                 time_smart = time.time() - start_smart
-                status.update(label=f"✅ Analyse abgeschlossen! ({time_smart:.1f}s)", state="complete", expanded=False)
+                status.update(label=f"✅ Analysis complete! ({time_smart:.1f}s)", state="complete", expanded=False)
 
-            # Metriken anzeigen (NACH dem Status-Block!)
+            # Display metrics (AFTER status block!)
             m1, m2, m3 = st.columns(3)
-            m1.metric("Tabellen", len(doc.tables))
-            m2.metric("Bilder/Grafiken", len(doc.pictures))
-            m3.metric("Zeichen", len(md_output))
+            m1.metric("Tables", len(doc.tables))
+            m2.metric("Images/Graphics", len(doc.pictures))
+            m3.metric("Characters", len(md_output))
 
-            # Markdown rendern (scrollbar macht's handhabbar!)
-            st.markdown("#### KI-Sicht (Markdown):")
+            # Render markdown (scrollbar makes it manageable!)
+            st.markdown("#### AI View (Markdown):")
             md_preview = md_output.replace('<', '&lt;').replace('>', '&gt;')
             st.markdown(f'<div class="good-box">{md_preview}</div>', unsafe_allow_html=True)
 
-            # Echter Markdown Render-Test
-            with st.expander("📄 Vorschau: Wie das LLM die Struktur 'versteht' (Rendered)"):
+            # Actual Markdown Render Test
+            with st.expander("📄 Preview: How the LLM 'understands' the structure (Rendered)"):
                 st.markdown(md_output)
 
         except Exception as e:
-            st.error(f"❌ Docling-Fehler: {e}")
-            st.warning("Tipp: Docling braucht `tesseract-ocr` installiert. Prüfe Dependencies!")
-            # Fallback-Werte für das Urteil
+            st.error(f"❌ Docling error: {e}")
+            st.warning("Tip: Docling requires `tesseract-ocr` installed. Check dependencies!")
+            # Fallback values for verdict
             doc = type('obj', (object,), {'tables': [], 'pictures': []})()
 
     st.divider()
 
-    # Das Urteil
-    st.subheader("⚖️ Das Urteil")
+    # The Verdict
+    st.subheader("⚖️ The Verdict")
 
     if len(doc.tables) > 0 or is_scan:
-        st.error("❌ DIESES DOKUMENT IST TOXISCH FÜR STANDARD-RAGs.")
-        st.write(f"Grund: {'Es ist ein Scan.' if is_scan else 'Es enthält komplexe Tabellen.'}")
-        st.markdown("**Empfehlung:** Nutze einen Ingest-Stack mit Layout-Aware Parsing (z.B. Docling).")
-        st.info("💡 Docling ist Open Source: `pip install docling`")
+        st.error("❌ THIS DOCUMENT IS TOXIC FOR STANDARD RAG.")
+        st.write(f"Reason: {'It is a scan.' if is_scan else 'It contains complex tables.'}")
+        st.markdown("**Recommendation:** Use an ingest stack with layout-aware parsing (e.g., Docling).")
+        st.info("💡 Docling is Open Source: `pip install docling`")
     else:
-        st.success("✅ Dokument ist relativ einfach. Standard-RAG könnte funktionieren (aber pass auf Layouts auf).")
+        st.success("✅ Document is relatively simple. Standard RAG might work (but watch out for layouts).")
 
     # Cleanup: Temp-Datei löschen
     try:
