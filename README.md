@@ -29,14 +29,14 @@ Then open http://localhost:8501 and upload a PDF.
 ## What Does It Do?
 
 Side-by-side comparison of two approaches:
-- **💀 Naive Approach:** Standard pypdf (what 90% of RAG tutorials use)
+- **💀 Naive Approach:** Standard pypdf (what many RAG tutorials use)
 - **🧠 Intelligent Approach:** Docling with layout-awareness & OCR
 
 ![Side-by-Side Comparison](./mid.png)
 
 ## Why?
 
-Most RAG tutorials ignore the hard parts:
+Many RAG tutorials ignore the hard parts:
 - **Scanned PDFs** (no text layer → RAG sees nothing)
 - **Tables** (become garbled text soup)
 - **Multi-column layouts** (wrong reading order breaks context)
@@ -77,6 +77,16 @@ Result: Clean markdown with preserved structure, tables, and hierarchy.
 - **Before building a RAG system:** Check if your documents are suitable
 - **Debugging RAG quality issues:** See what your pipeline actually sees
 - **Evaluating document ingestion strategies:** Compare approaches visually
+
+## Extensibility
+
+The parsers are modular and easy to swap. Want to try a different parser?
+
+1. Open `app.py`
+2. Replace the parsing logic in either column
+3. The side-by-side comparison makes it easy to evaluate alternatives
+
+Popular alternatives: PyMuPDF, Unstructured, LlamaParse, Azure Document Intelligence
 
 ## License
 
