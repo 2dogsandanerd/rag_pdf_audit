@@ -1,4 +1,4 @@
-# 🔍 RAG Ingest X-Ray
+# 🔍 RAG PDF Audit
 
 **See your documents through an AI's eyes.**
 
@@ -80,8 +80,5 @@ Result: Clean markdown with preserved structure, tables, and hierarchy.
 
 ## License
 
-MIT - do whatever you want with it.
+MIT
 
-## Built With
-
-Made in 3 hours to solve a real problem. If this helps you avoid the "why is my RAG hallucinating?" rabbit hole, star it! ⭐
