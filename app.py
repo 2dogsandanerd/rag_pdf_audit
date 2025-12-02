@@ -94,8 +94,8 @@ if uploaded_file is not None:
         st.header("🧠 Der 'Intelligente' Ansatz")
         st.caption("Dein Stack: Docling + Layout Vision + OCR")
 
-        with st.status("🚀 Deep Document Analysis läuft...", expanded=True) as status:
-            try:
+        try:
+            with st.status("🚀 Deep Document Analysis läuft...", expanded=True) as status:
                 start_smart = time.time()
 
                 st.write("⚙️ Initialisiere Vision-Modelle...")
@@ -118,27 +118,26 @@ if uploaded_file is not None:
                 time_smart = time.time() - start_smart
                 status.update(label=f"✅ Analyse abgeschlossen! ({time_smart:.1f}s)", state="complete", expanded=False)
 
-                # Metriken anzeigen
-                m1, m2, m3 = st.columns(3)
-                m1.metric("Tabellen", len(doc.tables))
-                m2.metric("Bilder/Grafiken", len(doc.pictures))
-                m3.metric("Zeichen", len(md_output))
+            # Metriken anzeigen (NACH dem Status-Block!)
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Tabellen", len(doc.tables))
+            m2.metric("Bilder/Grafiken", len(doc.pictures))
+            m3.metric("Zeichen", len(md_output))
 
-                # Markdown rendern (scrollbar macht's handhabbar!)
-                st.markdown("#### KI-Sicht (Markdown):")
-                md_preview = md_output.replace('<', '&lt;').replace('>', '&gt;')
-                st.markdown(f'<div class="good-box">{md_preview}</div>', unsafe_allow_html=True)
+            # Markdown rendern (scrollbar macht's handhabbar!)
+            st.markdown("#### KI-Sicht (Markdown):")
+            md_preview = md_output.replace('<', '&lt;').replace('>', '&gt;')
+            st.markdown(f'<div class="good-box">{md_preview}</div>', unsafe_allow_html=True)
 
-                # Echter Markdown Render-Test
-                with st.expander("📄 Vorschau: Wie das LLM die Struktur 'versteht' (Rendered)"):
-                    st.markdown(md_output)
+            # Echter Markdown Render-Test
+            with st.expander("📄 Vorschau: Wie das LLM die Struktur 'versteht' (Rendered)"):
+                st.markdown(md_output)
 
-            except Exception as e:
-                status.update(label="❌ Fehler aufgetreten", state="error", expanded=True)
-                st.error(f"❌ Docling-Fehler: {e}")
-                st.warning("Tipp: Docling braucht `tesseract-ocr` installiert. Prüfe Dependencies!")
-                # Fallback-Werte für das Urteil
-                doc = type('obj', (object,), {'tables': [], 'pictures': []})()
+        except Exception as e:
+            st.error(f"❌ Docling-Fehler: {e}")
+            st.warning("Tipp: Docling braucht `tesseract-ocr` installiert. Prüfe Dependencies!")
+            # Fallback-Werte für das Urteil
+            doc = type('obj', (object,), {'tables': [], 'pictures': []})()
 
     st.divider()
 
